@@ -58,3 +58,25 @@ Nginx is solely responsible for certificate renewal and reloads.
 Each production change should have a backup of the original source, binary,
 nginx configuration and service definition. The deployment backup includes a
 rollback script. Rebuild with `build/build.sh`; set GOOS/GOARCH for cross builds.
+
+## AdSense onboarding
+
+The homepage includes the publisher verification meta tag for
+`ca-pub-1687667848944125`. `static/ads.txt` provides the authorized Google seller
+entry. The nginx configuration maps `/ads.txt` and `/privacy` to the corresponding
+static files; keep those mappings when installing the deployment snapshot.
+The homepage links to privacy/advertising disclosures and explains the tool's
+connection fields and API usage.
+
+Site ownership was verified and site review requested on 2026-10-12. No AdSense
+ad-serving script or ad unit is enabled yet. Check the AdSense dashboard for site
+approval and complete the required account/payment information before enabling
+ads. Use a single manually placed responsive display unit at the header, keeping
+it away from the IP data and command-line examples. Configure Google's certified
+CMP/European regulations message before enabling ads for the relevant regions.
+
+References:
+- https://support.google.com/adsense/answer/7584263
+- https://support.google.com/adsense/answer/12171612
+- https://support.google.com/adsense/answer/1348695
+- https://support.google.com/adsense/answer/13554116

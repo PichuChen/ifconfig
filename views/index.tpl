@@ -10,6 +10,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="Get my IP Address" />
     <meta name="keywords" content="ip address ifconfig" />
+    <meta name="google-adsense-account" content="ca-pub-1687667848944125" />
     <meta name="author" content="ifconfig.tw" />
     <link rel="shortcut icon" href="/static/img/favicon.ico" />
     <link rev="made" href="mailto: {{.Email}}" />
@@ -36,7 +37,7 @@
       #cli_table td{border-bottom: solid 1px #888;padding-top:3px;padding-bottom:3px;overflow-wrap:anywhere;word-break:normal;}
       .cli_command{width:190px;padding-left:10px;}
       .cli_arrow{width:40px;text-align:center;}
-      #footer{background:#777;height:20px;line-height:20px;color:#ddd;text-align:center;margin-top:15px;border-top:none;}
+      #footer{background:#777;min-height:20px;line-height:20px;color:#ddd;text-align:center;margin-top:15px;border-top:none;}
       #ip_address{font-size:1.9em;}
       #ip_address_cell{padding:5px;height:50px;}
       
@@ -45,6 +46,11 @@
     #button_twitter{width:100px;}
     #button_plusone{width:70px;}
     #button_facebook{width:100px;}
+      #guide{margin:24px 10px;line-height:1.6;overflow-wrap:anywhere;}
+      #guide h3{font-size:15px;margin:16px 5px 6px;}
+      #guide p{margin:0 5px 10px;}
+      #guide pre{margin:0 5px 10px;white-space:pre-wrap;overflow-wrap:anywhere;}
+      #footer a{color:#fff;}
       @media (max-width:600px) {
         .info_table_label{width:80px;}
         .cli_command{width:120px;}
@@ -115,7 +121,23 @@
           <tr><td class="cli_command">$ curl ifconfig.tw/all.json</td><td class="cli_arrow">&rArr;</td><td><pre style="white-space:pre-wrap;overflow-wrap:anywhere">{{.JSONExample}}</pre></td></tr>
         </table>
       </div>
-      <div id="footer">&copy; 2016 <a href="https://ifconfig.tw">ifconfig.tw</a></div>
+      <section id="guide" aria-label="About this tool">
+        <h2>About this tool</h2>
+        <p>ifconfig.tw is a public IP and HTTP connection checker. Use it to see the address presented by your connection, check whether a VPN changes that address, or inspect the headers a client sends. The public address may belong to a router, VPN or shared network rather than an individual device.</p>
+        <h3>IPv4 and IPv6</h3>
+        <p>Your browser shows the address family used for this particular connection. A network can have both IPv4 and IPv6 addresses. To check each separately with curl, use:</p>
+        <pre>curl -4 https://ifconfig.tw/ip
+curl -6 https://ifconfig.tw/ip</pre>
+        <p>An IPv6-only check requires working IPv6 connectivity; an unsuccessful request does not prove your device has no IPv6 address.</p>
+        <h3>Remote Host and Port</h3>
+        <p>Remote Host is a reverse DNS name associated with the public IP address. It may be empty when no name can be found, and it does not identify a person's physical location. Port is the source port seen by the service, which may be changed by a router or VPN.</p>
+        <h3>Request headers</h3>
+        <p>User Agent describes the client software. MIME Type shows the client's Accept header, which lists response formats it can accept. Language shows Accept-Language. These values are supplied by the client and can be changed, so they should not be treated as proof of identity.</p>
+        <h3>Using the API</h3>
+        <p>Use /ip for a plain IP address, /all for text fields, /all.json for JSON, or /all.xml for XML. JSON and XML use fields such as ip_addr and remote_host. Add ?format=legacy to the JSON or XML URL if you need the older field names. The API endpoints are suitable for command-line tools and contain no advertising scripts.</p>
+        <p><a href="/privacy">Privacy &amp; advertising</a> · <a href="mailto:admin@ifconfig.tw">Contact</a></p>
+      </section>
+      <div id="footer">&copy; 2016 <a href="https://ifconfig.tw">ifconfig.tw</a> · <a href="/privacy">Privacy &amp; advertising</a></div>
     </div>
     <script>
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
