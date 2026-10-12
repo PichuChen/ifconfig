@@ -7,6 +7,7 @@
     <meta http-equiv="content-language" content="en" />
     <meta http-equiv="pragma" content="no-cache" />
     <meta http-equiv="cache-control" content="no-cache" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="Get my IP Address" />
     <meta name="keywords" content="ip address ifconfig" />
     <meta name="author" content="ifconfig.tw" />
@@ -16,23 +17,23 @@
     <style type="text/css">
     * {margin:0; padding:0;font-style:normal;font-weight:normal;font-family:Arial,sans-serif;font-size:13px;color:#333;}
       body{}
-      #container{background:white;width:750px;margin:10px auto;margin-bottom:10px;border:solid 1px #888;}
-      #header{height:50px;padding:15px 0 10px 10px;}
+      #container{background:white;width:calc(100% - 22px);max-width:750px;margin:10px auto;margin-bottom:10px;border:solid 1px #888;}
+      #header{min-height:50px;padding:15px 0 10px 10px;}
       #header table{width:100%;}
       h1 a{font-size:20px;margin:10px;letter-spacing:1px;text-decoration:none;color:#555;}
       #ads{height:20px;margin-bottom:15px;text-align:right;background:#777;padding-top:4px;border-left:solid 1px #888;border-right:solid 1px #888;}
-      #info_area{float:left;margin-left:11px;}
-      #info_table{border-collapse:collapse;margin:0 auto;line-height:20px;width:728px;table-layout:fixed;}
+      #info_area{margin:0 10px;}
+      #info_table{border-collapse:collapse;margin:0 auto;line-height:20px;width:100%;table-layout:fixed;}
       #info_table tr{height:30px;}
-      #info_table td{border: solid 1px #888;padding: 0px 10px;}
+      #info_table td{border: solid 1px #888;padding: 0px 10px;overflow-wrap:anywhere;word-break:normal;}
       .info_table_label{width:100px;}
       #table_ads{width:260px;text-align:center;}
       #middle{height:110px;clear:both;text-align:center;padding-top:20px;}
       #cli_wrap{margin:0 10px;}
       h2{height:30px;line-height:30px;font-size:18px;margin:0 5px;padding-left:5px;}
-      #cli_table{border:solid 1px #888;border-collapse:collapse;width:728px;margin:0 auto;line-height:20px;table-layout:fixed;}
+      #cli_table{border:solid 1px #888;border-collapse:collapse;width:100%;margin:0 auto;line-height:20px;table-layout:fixed;}
       #cli_table tr{height:30px;}
-      #cli_table td{border-bottom: solid 1px #888;padding-top:3px;padding-bottom:3px;overflow:hidden;}
+      #cli_table td{border-bottom: solid 1px #888;padding-top:3px;padding-bottom:3px;overflow-wrap:anywhere;word-break:normal;}
       .cli_command{width:190px;padding-left:10px;}
       .cli_arrow{width:40px;text-align:center;}
       #footer{background:#777;height:20px;line-height:20px;color:#ddd;text-align:center;margin-top:15px;border-top:none;}
@@ -44,6 +45,12 @@
     #button_twitter{width:100px;}
     #button_plusone{width:70px;}
     #button_facebook{width:100px;}
+      @media (max-width:600px) {
+        .info_table_label{width:80px;}
+        .cli_command{width:120px;}
+        .cli_arrow{width:24px;}
+        h1 a{margin:0;line-height:1.4;}
+      }
     </style>
   </head>
   <body>
@@ -77,12 +84,12 @@
           <tr><td class="info_table_label">Referer</td><td>{{.Referer}}</td></tr>
           <tr><td class="info_table_label">Connection</td><td>{{.Connection}}</td></tr>
           <tr><td class="info_table_label">KeepAlive</td><td>{{.Keepalive}}</td></tr>
-          <tr><td class="info_table_label">Method</td><td colspan="2">{{.Method}}</td></tr>
-          <tr><td class="info_table_label">Encoding</td><td colspan="2">{{.Encoding}}</td></tr>
-          <tr><td class="info_table_label">MIME Type</td><td colspan="2">{{.Mime}}</td></tr>
-          <tr><td class="info_table_label">Charset</td><td colspan="2">{{.Charset}}</td></tr>
-          <tr><td class="info_table_label">Via</td><td colspan="2">{{.Via}}</td></tr>
-          <tr><td class="info_table_label">X-Forwarded-For</td><td colspan="2">{{.Forwarded}}</td></tr>
+          <tr><td class="info_table_label">Method</td><td>{{.Method}}</td></tr>
+          <tr><td class="info_table_label">Encoding</td><td>{{.Encoding}}</td></tr>
+          <tr><td class="info_table_label">MIME Type</td><td>{{.Mime}}</td></tr>
+          <tr><td class="info_table_label">Charset</td><td>{{.Charset}}</td></tr>
+          <tr><td class="info_table_label">Via</td><td>{{.Via}}</td></tr>
+          <tr><td class="info_table_label">X-Forwarded-For</td><td>{{.Forwarded}}</td></tr>
         </table>
       </div>
       <div id="middle">
