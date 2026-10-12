@@ -117,3 +117,7 @@ Required DNS records:
 Remove any A record for v6 and any AAAA record for v4. DNS caches can retain old
 records until their TTL expires. Both entry points share the same read-only API,
 privacy page and ads.txt. The main ifconfig.tw domain remains dual-stack.
+
+Gandi authoritative DNS and a public resolver were verified on 2026-10-12:
+v4 has only A and v6 has only AAAA. The removed v6 A record had a 10800-second
+TTL, so previously cached answers may remain for up to three hours.
