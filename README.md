@@ -97,3 +97,23 @@ also affect HTTPS results. We always report the observed client/relay address.
 
 Apple documentation:
 https://developer.apple.com/icloud/prepare-your-network-for-icloud-private-relay/
+
+## IPv6-only entry point
+
+Use `curl -6 https://v6.ifconfig.tw/ip` for an IPv6 query. The IPv6 nginx virtual
+hosts listen on `[::]:80` and `[::]:443`, with a dedicated certificate and
+webroot renewal followed by an nginx reload hook. IPv4 connections to this
+hostname receive HTTP 421 with instructions and never return an IPv4 address.
+This guard also handles stale A records during DNS changes. The endpoint requires
+working IPv6 connectivity; it cannot provide IPv6 over an IPv4-only connection.
+
+Required DNS records:
+
+| Host | Type | Value |
+| --- | --- | --- |
+| v4.ifconfig.tw | A only | 118.27.37.159 |
+| v6.ifconfig.tw | AAAA only | 2400:8500:1801:418:118:27:37:159 |
+
+Remove any A record for v6 and any AAAA record for v4. DNS caches can retain old
+records until their TTL expires. Both entry points share the same read-only API,
+privacy page and ads.txt. The main ifconfig.tw domain remains dual-stack.

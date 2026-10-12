@@ -131,9 +131,11 @@ curl -6 https://ifconfig.tw/ip</pre>
         <p>An IPv6-only check requires working IPv6 connectivity; an unsuccessful request does not prove your device has no IPv6 address.</p>
         <h3>Proxies and iCloud Private Relay</h3>
         <p>This service reports the address that reaches our server. A VPN, HTTP proxy or iCloud Private Relay can replace your network's address with a relay exit address. On supported Apple devices, Private Relay can forward unencrypted HTTP app traffic. Using curl -4 controls curl's connection, but a relay can choose a different address family for its connection to the website.</p>
-        <p>For command-line checks, use HTTPS. You can also use the IPv4-only hostname:</p>
+        <p>For command-line checks, use HTTPS. You can also select an address-family-specific hostname:</p>
         <pre>curl -4 https://ifconfig.tw/ip
-curl https://v4.ifconfig.tw/ip</pre>
+curl https://v4.ifconfig.tw/ip
+curl -6 https://v6.ifconfig.tw/ip</pre>
+        <p>The v6 endpoint requires working IPv6 connectivity. IPv4 requests receive HTTP 421 with instructions instead of an IPv4 result. The v4 endpoint has only an A record; the v6 endpoint is intended to have only an AAAA record.</p>
         <p>A proxy or VPN may still affect the address you see. The service cannot recover an original address that a privacy relay does not disclose.</p>
         <h3>Remote Host and Port</h3>
         <p>Remote Host is a reverse DNS name associated with the public IP address. It may be empty when no name can be found, and it does not identify a person's physical location. Port is the source port seen by the service, which may be changed by a router or VPN.</p>
