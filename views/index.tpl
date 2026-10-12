@@ -103,22 +103,22 @@
       <div id="cli_wrap">
         <h2>Command Line Interface</h2>
         <table id="cli_table" summary="cli">
-          <tr><td class="cli_command">$ curl ifconfig.tw</td><td class="cli_arrow">&rArr;</td><td>{{.IP}}</td></tr>
-          <tr><td class="cli_command">$ curl ifconfig.tw/ip</td><td class="cli_arrow">&rArr;</td><td>{{.IP}}</td></tr>
-          <tr><td class="cli_command">$ curl ifconfig.tw/host</td><td class="cli_arrow">&rArr;</td><td>{{.Host}}</td></tr>
-          <tr><td class="cli_command">$ curl ifconfig.tw/ua</td><td class="cli_arrow">&rArr;</td><td>{{.UserAgent}}</td></tr>
-          <tr><td class="cli_command">$ curl ifconfig.tw/port</td><td class="cli_arrow">&rArr;</td><td>{{.Port}}</td></tr>
-          <tr><td class="cli_command">$ curl ifconfig.tw/lang</td><td class="cli_arrow">&rArr;</td><td>{{.Lang}}</td></tr>
-          <tr><td class="cli_command">$ curl ifconfig.tw/keepalive</td><td class="cli_arrow">&rArr;</td><td>{{.Keepalive}}</td></tr>
-          <tr><td class="cli_command">$ curl ifconfig.tw/connection</td><td class="cli_arrow">&rArr;</td><td>{{.Connection}}</td></tr>
-          <tr><td class="cli_command">$ curl ifconfig.tw/encoding</td><td class="cli_arrow">&rArr;</td><td>{{.Encoding}}</td></tr>
-          <tr><td class="cli_command">$ curl ifconfig.tw/mime</td><td class="cli_arrow">&rArr;</td><td>{{.Mime}}</td></tr>
-          <tr><td class="cli_command">$ curl ifconfig.tw/charset</td><td class="cli_arrow">&rArr;</td><td>{{.Charset}}</td></tr>
-          <tr><td class="cli_command">$ curl ifconfig.tw/via</td><td class="cli_arrow">&rArr;</td><td>{{.Via}}</td></tr>
-          <tr><td class="cli_command">$ curl ifconfig.tw/forwarded</td><td class="cli_arrow">&rArr;</td><td>{{.Forwarded}}</td></tr>
-          <tr><td class="cli_command">$ curl ifconfig.tw/all</td><td class="cli_arrow">&rArr;</td><td>ip_addr: {{.IP}}<br />remote_host: {{.Host}} <br />user_agent: {{.UserAgent}}<br />port: {{.Port}}<br />lang: {{.Lang}}<br />connection: {{.Connection}}<br />keep_alive: {{.Keepalive}}<br />encoding: {{.Encoding}}<br />mime: {{.Mime}}<br />charset: {{.Charset}}<br />via: {{.Via}}<br />forwarded: {{.Forwarded}}<br /></td></tr>
-          <tr><td class="cli_command">$ curl ifconfig.tw/all.xml</td><td class="cli_arrow">&rArr;</td><td><pre style="white-space:pre-wrap;overflow-wrap:anywhere">{{.XMLExample}}</pre></td></tr>
-          <tr><td class="cli_command">$ curl ifconfig.tw/all.json</td><td class="cli_arrow">&rArr;</td><td><pre style="white-space:pre-wrap;overflow-wrap:anywhere">{{.JSONExample}}</pre></td></tr>
+          <tr><td class="cli_command">$ curl https://ifconfig.tw</td><td class="cli_arrow">&rArr;</td><td>{{.IP}}</td></tr>
+          <tr><td class="cli_command">$ curl https://ifconfig.tw/ip</td><td class="cli_arrow">&rArr;</td><td>{{.IP}}</td></tr>
+          <tr><td class="cli_command">$ curl https://ifconfig.tw/host</td><td class="cli_arrow">&rArr;</td><td>{{.Host}}</td></tr>
+          <tr><td class="cli_command">$ curl https://ifconfig.tw/ua</td><td class="cli_arrow">&rArr;</td><td>{{.UserAgent}}</td></tr>
+          <tr><td class="cli_command">$ curl https://ifconfig.tw/port</td><td class="cli_arrow">&rArr;</td><td>{{.Port}}</td></tr>
+          <tr><td class="cli_command">$ curl https://ifconfig.tw/lang</td><td class="cli_arrow">&rArr;</td><td>{{.Lang}}</td></tr>
+          <tr><td class="cli_command">$ curl https://ifconfig.tw/keepalive</td><td class="cli_arrow">&rArr;</td><td>{{.Keepalive}}</td></tr>
+          <tr><td class="cli_command">$ curl https://ifconfig.tw/connection</td><td class="cli_arrow">&rArr;</td><td>{{.Connection}}</td></tr>
+          <tr><td class="cli_command">$ curl https://ifconfig.tw/encoding</td><td class="cli_arrow">&rArr;</td><td>{{.Encoding}}</td></tr>
+          <tr><td class="cli_command">$ curl https://ifconfig.tw/mime</td><td class="cli_arrow">&rArr;</td><td>{{.Mime}}</td></tr>
+          <tr><td class="cli_command">$ curl https://ifconfig.tw/charset</td><td class="cli_arrow">&rArr;</td><td>{{.Charset}}</td></tr>
+          <tr><td class="cli_command">$ curl https://ifconfig.tw/via</td><td class="cli_arrow">&rArr;</td><td>{{.Via}}</td></tr>
+          <tr><td class="cli_command">$ curl https://ifconfig.tw/forwarded</td><td class="cli_arrow">&rArr;</td><td>{{.Forwarded}}</td></tr>
+          <tr><td class="cli_command">$ curl https://ifconfig.tw/all</td><td class="cli_arrow">&rArr;</td><td>ip_addr: {{.IP}}<br />remote_host: {{.Host}} <br />user_agent: {{.UserAgent}}<br />port: {{.Port}}<br />lang: {{.Lang}}<br />connection: {{.Connection}}<br />keep_alive: {{.Keepalive}}<br />encoding: {{.Encoding}}<br />mime: {{.Mime}}<br />charset: {{.Charset}}<br />via: {{.Via}}<br />forwarded: {{.Forwarded}}<br /></td></tr>
+          <tr><td class="cli_command">$ curl https://ifconfig.tw/all.xml</td><td class="cli_arrow">&rArr;</td><td><pre style="white-space:pre-wrap;overflow-wrap:anywhere">{{.XMLExample}}</pre></td></tr>
+          <tr><td class="cli_command">$ curl https://ifconfig.tw/all.json</td><td class="cli_arrow">&rArr;</td><td><pre style="white-space:pre-wrap;overflow-wrap:anywhere">{{.JSONExample}}</pre></td></tr>
         </table>
       </div>
       <section id="guide" aria-label="About this tool">
@@ -129,6 +129,12 @@
         <pre>curl -4 https://ifconfig.tw/ip
 curl -6 https://ifconfig.tw/ip</pre>
         <p>An IPv6-only check requires working IPv6 connectivity; an unsuccessful request does not prove your device has no IPv6 address.</p>
+        <h3>Proxies and iCloud Private Relay</h3>
+        <p>This service reports the address that reaches our server. A VPN, HTTP proxy or iCloud Private Relay can replace your network's address with a relay exit address. On supported Apple devices, Private Relay can forward unencrypted HTTP app traffic. Using curl -4 controls curl's connection, but a relay can choose a different address family for its connection to the website.</p>
+        <p>For command-line checks, use HTTPS. You can also use the IPv4-only hostname:</p>
+        <pre>curl -4 https://ifconfig.tw/ip
+curl https://v4.ifconfig.tw/ip</pre>
+        <p>A proxy or VPN may still affect the address you see. The service cannot recover an original address that a privacy relay does not disclose.</p>
         <h3>Remote Host and Port</h3>
         <p>Remote Host is a reverse DNS name associated with the public IP address. It may be empty when no name can be found, and it does not identify a person's physical location. Port is the source port seen by the service, which may be changed by a router or VPN.</p>
         <h3>Request headers</h3>

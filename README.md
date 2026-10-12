@@ -80,3 +80,20 @@ References:
 - https://support.google.com/adsense/answer/12171612
 - https://support.google.com/adsense/answer/1348695
 - https://support.google.com/adsense/answer/13554116
+
+## IPv4-only entry point and privacy relays
+
+`v4.ifconfig.tw` has an A record and no AAAA record. Its nginx virtual hosts listen
+on IPv4 port 80/443 and forward to the same loopback application. HTTPS uses a
+separate certificate with webroot renewal and an nginx reload deploy hook.
+Keep the A-only DNS configuration when moving the service.
+
+Prefer `curl -4 https://ifconfig.tw/ip` or `curl https://v4.ifconfig.tw/ip`.
+The `-4` option controls curl's connection and cannot force the IP family on a
+proxy's second connection to the origin. iCloud Private Relay covers unencrypted
+HTTP app traffic on supported Apple devices, so plain HTTP checks may report a
+relay IPv6 address even with `curl -4`. VPNs or explicitly configured proxies can
+also affect HTTPS results. We always report the observed client/relay address.
+
+Apple documentation:
+https://developer.apple.com/icloud/prepare-your-network-for-icloud-private-relay/
