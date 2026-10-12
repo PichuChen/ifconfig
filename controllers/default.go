@@ -1,153 +1,231 @@
 package controllers
 
 import (
-	// "bytes"
+	"context"
+	"encoding/json"
+	"encoding/xml"
 	"fmt"
-	"github.com/astaxie/beego"
+	"html/template"
 	"net"
+	"net/http"
+	"net/netip"
 	"os"
+	"path/filepath"
+	"strconv"
 	"strings"
-	// "unicode/utf8"
+	"sync"
+	"time"
 )
 
-type MainController struct {
-	beego.Controller
+type Info struct {
+	XMLName    xml.Name `json:"-" xml:"info"`
+	IP         string   `json:"ip_addr" xml:"ip_addr"`
+	Host       string   `json:"remote_host" xml:"remote_host"`
+	UserAgent  string   `json:"user_agent" xml:"user_agent"`
+	Port       string   `json:"port" xml:"port"`
+	Lang       string   `json:"lang" xml:"lang"`
+	Connection string   `json:"connection" xml:"connection"`
+	Keepalive  string   `json:"keep_alive" xml:"keep_alive"`
+	Encoding   string   `json:"encoding" xml:"encoding"`
+	Mime       string   `json:"mime" xml:"mime"`
+	Charset    string   `json:"charset" xml:"charset"`
+	Via        string   `json:"via" xml:"via"`
+	Forwarded  string   `json:"forwarded" xml:"forwarded"`
+	Method     string   `json:"method" xml:"method"`
+	Referer    string   `json:"referer" xml:"referer"`
+	Email      string   `json:"email" xml:"email"`
 }
 
-func (this *MainController) GetForwarded() {
-	if len(this.Ctx.Request.Header["X-Forwarded-For"]) > 0 {
-		this.Data["Value"] = this.Ctx.Request.Header["X-Forwarded-For"][0]
+// Examples use the same serializers as the API and are escaped by html/template.
+func (i Info) JSONExample() string {
+	value, _ := json.Marshal(i)
+	return string(value)
+}
+func (i Info) XMLExample() string {
+	value, _ := xml.MarshalIndent(i, "", "  ")
+	return string(value)
+}
+
+type cachedHost struct {
+	host    string
+	expires time.Time
+}
+type Handler struct {
+	page   *template.Template
+	static http.Handler
+	lookup func(context.Context, string) ([]string, error)
+	mu     sync.Mutex
+	cache  map[string]cachedHost
+}
+
+func NewHandler(views, static string) (*Handler, error) {
+	page, err := template.ParseFiles(filepath.Join(views, "index.tpl"))
+	if err != nil {
+		return nil, err
 	}
-	this.TplName = "value.tpl"
+	return &Handler{page: page, static: http.StripPrefix("/static/", http.FileServer(http.Dir(static))), lookup: net.DefaultResolver.LookupAddr, cache: make(map[string]cachedHost)}, nil
 }
 
-func (this *MainController) GetHost() {
-	ip := this.Ctx.Request.RemoteAddr
-
-	names, err := net.LookupAddr(ip)
-	if err != nil || len(names) == 0 {
-		this.Data["Value"] = ""
-	} else {
-		var value string
-		for _, v := range names {
-			value += fmt.Sprintf("%s\n", v)
+// Only loopback nginx may supply the server-owned forwarding headers.
+// Public backends must never accept these headers from arbitrary peers.
+func source(r *http.Request) (string, string) {
+	host, port, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return r.RemoteAddr, ""
+	}
+	peer, err := netip.ParseAddr(host)
+	if err != nil {
+		return host, port
+	}
+	host = peer.Unmap().String()
+	if !peer.IsLoopback() {
+		return host, port
+	}
+	forwarded, err := netip.ParseAddr(r.Header.Get("X-Tih-Forwarded-For"))
+	if err != nil {
+		return host, port
+	}
+	host = forwarded.Unmap().String()
+	// The proxy connection's port is not the client's port. Missing or malformed
+	// forwarded ports remain empty rather than panicking or inventing a value.
+	port = ""
+	if value := r.Header.Get("X-Tih-Forwarded-For-Port"); value != "" {
+		if n, err := strconv.Atoi(value); err == nil && n > 0 && n <= 65535 {
+			port = strconv.Itoa(n)
 		}
-		this.Data["Value"] = value
 	}
-	this.TplName = "value.tpl"
+	return host, port
 }
 
-func (this *MainController) GetIP() {
-	this.Data["Value"] = getIP(this.Ctx.Request.RemoteAddr)
-	this.TplName = "value.tpl"
-}
-
-func (this *MainController) GetPort() {
-	this.Data["Value"] = getPort(this.Ctx.Request.RemoteAddr)
-	this.TplName = "value.tpl"
-}
-
-func (this *MainController) GetVia() {
-	if len(this.Ctx.Request.Header["Via"]) > 0 {
-		this.Data["Value"] = this.Ctx.Request.Header["Via"][0]
+func (h *Handler) hostname(ctx context.Context, ip string) string {
+	if _, err := netip.ParseAddr(ip); err != nil {
+		return ""
 	}
-	this.TplName = "value.tpl"
-}
-
-func (this *MainController) GetMime() {
-	if len(this.Ctx.Request.Header["Accept"]) > 0 {
-		this.Data["Value"] = this.Ctx.Request.Header["Accept"][0]
+	h.mu.Lock()
+	cached, ok := h.cache[ip]
+	h.mu.Unlock()
+	if ok && time.Now().Before(cached.expires) {
+		return cached.host
 	}
-	this.TplName = "value.tpl"
-}
-
-func (this *MainController) GetLang() {
-	if len(this.Ctx.Request.Header["Accept-Language"]) > 0 {
-		this.Data["Value"] = this.Ctx.Request.Header["Accept-Language"][0]
-	}
-	this.TplName = "value.tpl"
-}
-
-func (this *MainController) GetCharset() {
-	if len(this.Ctx.Request.Header["Charset"]) > 0 {
-		this.Data["Value"] = this.Ctx.Request.Header["Charset"][0]
-	}
-	this.TplName = "value.tpl"
-}
-
-func (this *MainController) GetEncoding() {
-	if len(this.Ctx.Request.Header["Accept-Encoding"]) > 0 {
-		this.Data["Value"] = this.Ctx.Request.Header["Accept-Encoding"][0]
-	}
-	this.TplName = "value.tpl"
-}
-
-func (this *MainController) GetUserAgent() {
-	this.Data["Value"] = this.Ctx.Request.UserAgent()
-	this.TplName = "value.tpl"
-}
-
-func (this *MainController) GetConnection() {
-	if len(this.Ctx.Request.Header["Connection"]) > 0 {
-		this.Data["Value"] = this.Ctx.Request.Header["Connection"][0]
-	}
-	this.TplName = "value.tpl"
-}
-
-func (this *MainController) GetKeepAlive() {
-	if len(this.Ctx.Request.Header["KeepAlive"]) > 0 {
-		this.Data["Value"] = this.Ctx.Request.Header["KeepAlive"][0]
-	}
-	this.TplName = "value.tpl"
-}
-
-func (this *MainController) GetAll() {
-	this.Data["Email"] = "admin@ifconfig.tw"
-	this.Data["UserAgent"] = this.Ctx.Request.UserAgent()
-	ip := getIP(this.Ctx.Request.RemoteAddr)
-	names, err := net.LookupAddr(ip)
-	if err != nil || len(names) == 0 {
-		this.Data["Host"] = ""
-	} else {
-		var value string
-		for _, v := range names {
-			value += fmt.Sprintf("%s\n", v)
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
+	names, err := h.lookup(ctx, ip)
+	host := ""
+	if err == nil {
+		for i := range names {
+			names[i] = strings.TrimSuffix(names[i], ".")
 		}
-		this.Data["Host"] = value
+		host = strings.Join(names, "\n")
 	}
-	this.Data["IP"] = getIP(this.Ctx.Request.RemoteAddr)
-	this.Data["Port"] = getPort(this.Ctx.Request.RemoteAddr)
-	this.Data["Method"] = this.Ctx.Request.Method
-	if len(this.Ctx.Request.Header["Accept-Encoding"]) > 0 {
-		this.Data["Encoding"] = this.Ctx.Request.Header["Accept-Encoding"][0]
+	h.mu.Lock()
+	// Bound memory even when many clients have different source addresses.
+	if len(h.cache) >= 1024 {
+		clear(h.cache)
 	}
-	if len(this.Ctx.Request.Header["Accept"]) > 0 {
-		this.Data["Mime"] = this.Ctx.Request.Header["Accept"][0]
-	}
-	if len(this.Ctx.Request.Header["Connection"]) > 0 {
-		this.Data["Connection"] = this.Ctx.Request.Header["Connection"][0]
-	}
-	if len(this.Ctx.Request.Header["Via"]) > 0 {
-		this.Data["Via"] = this.Ctx.Request.Header["Via"][0]
-	}
-	if len(this.Ctx.Request.Header["Charset"]) > 0 {
-		this.Data["Charset"] = this.Ctx.Request.Header["Charset"][0]
-	}
-	if len(this.Ctx.Request.Header["KeepAlive"]) > 0 {
-		this.Data["Keepalive"] = this.Ctx.Request.Header["KeepAlive"][0]
-	}
-	if len(this.Ctx.Request.Header["X-Forwarded-For"]) > 0 {
-		this.Data["Forwarded"] = this.Ctx.Request.Header["X-Forwarded-For"][0]
-	}
-	if len(this.Ctx.Request.Header["Accept-Language"]) > 0 {
-		this.Data["Lang"] = this.Ctx.Request.Header["Accept-Language"][0]
-	}
-	this.Data["Referer"] = this.Ctx.Input.Refer()
-
-	this.TplName = "all.tpl"
+	h.cache[ip] = cachedHost{host: host, expires: time.Now().Add(5 * time.Minute)}
+	h.mu.Unlock()
+	return host
 }
 
-type ifconfig struct {
+func (h *Handler) info(r *http.Request, resolve bool) Info {
+	ip, port := source(r)
+	info := Info{IP: ip, Port: port, UserAgent: r.UserAgent(), Lang: r.Header.Get("Accept-Language"), Connection: r.Header.Get("Connection"), Keepalive: r.Header.Get("Keep-Alive"), Encoding: r.Header.Get("Accept-Encoding"), Mime: r.Header.Get("Accept"), Charset: r.Header.Get("Accept-Charset"), Via: r.Header.Get("Via"), Forwarded: r.Header.Get("X-Forwarded-For"), Method: r.Method, Referer: r.Referer(), Email: "admin@ifconfig.tw"}
+	if resolve {
+		info.Host = h.hostname(r.Context(), ip)
+	}
+	return info
+}
+
+func known(path string) bool {
+	switch path {
+	case "/", "/ip", "/host", "/ua", "/port", "/keepalive", "/lang", "/connection", "/encoding", "/via", "/mime", "/charset", "/forwarded", "/all", "/all.xml", "/all.json":
+		return true
+	}
+	return false
+}
+
+func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Cache-Control", "no-store")
+	if strings.HasPrefix(r.URL.Path, "/static/") {
+		h.static.ServeHTTP(w, r)
+		return
+	}
+	if !known(r.URL.Path) || (r.URL.Path == "/" && os.Getenv("NOWEB") == "1") {
+		http.NotFound(w, r)
+		return
+	}
+	w.Header().Set("Allow", "GET, HEAD, OPTIONS")
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	if r.Method != http.MethodGet && r.Method != http.MethodHead {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	plainRoot := r.URL.Path == "/" && strings.Contains(strings.ToLower(r.UserAgent()), "curl")
+	resolve := r.URL.Path == "/host" || r.URL.Path == "/all" || r.URL.Path == "/all.json" || r.URL.Path == "/all.xml" || (r.URL.Path == "/" && !plainRoot)
+	info := h.info(r, resolve)
+	if r.URL.Path == "/all.json" {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		var value any = info
+		if r.URL.Query().Get("format") == "legacy" {
+			value = legacyJSON(info)
+		}
+		_ = json.NewEncoder(w).Encode(value)
+		return
+	}
+	if r.URL.Path == "/all.xml" {
+		w.Header().Set("Content-Type", "application/xml; charset=utf-8")
+		var value any = info
+		if r.URL.Query().Get("format") == "legacy" {
+			value = legacyXML(info)
+		}
+		_ = xml.NewEncoder(w).Encode(value)
+		return
+	}
+	if r.URL.Path == "/" && !plainRoot {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		_ = h.page.Execute(w, info)
+		return
+	}
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	var value string
+	switch r.URL.Path {
+	case "/", "/ip":
+		value = info.IP
+	case "/host":
+		value = info.Host
+	case "/ua":
+		value = info.UserAgent
+	case "/port":
+		value = info.Port
+	case "/keepalive":
+		value = info.Keepalive
+	case "/lang":
+		value = info.Lang
+	case "/connection":
+		value = info.Connection
+	case "/encoding":
+		value = info.Encoding
+	case "/via":
+		value = info.Via
+	case "/mime":
+		value = info.Mime
+	case "/charset":
+		value = info.Charset
+	case "/forwarded":
+		value = info.Forwarded
+	case "/all":
+		fmt.Fprintf(w, "ip_addr: %s\nremote_host: %s\nuser_agent: %s\nport: %s\nlang: %s\nconnection: %s\nkeep_alive: %s\nencoding: %s\nmime: %s\ncharset: %s\nvia: %s\nforwarded: %s\n", info.IP, info.Host, info.UserAgent, info.Port, info.Lang, info.Connection, info.Keepalive, info.Encoding, info.Mime, info.Charset, info.Via, info.Forwarded)
+		return
+	}
+	fmt.Fprintln(w, value)
+}
+
+type oldInfo struct {
+	XMLName    xml.Name `json:"-" xml:"ifconfig"`
 	Email      string
 	UserAgent  string
 	Host       string
@@ -165,201 +243,20 @@ type ifconfig struct {
 	Referer    string
 }
 
-func (this *MainController) GetAllXML() {
-	thisData := ifconfig{}
-	thisData.Email = "admin@ifconfig.tw"
-	thisData.UserAgent = this.Ctx.Request.UserAgent()
-
-	ip := getIP(this.Ctx.Request.RemoteAddr)
-	names, err := net.LookupAddr(ip)
-	if err != nil || len(names) == 0 {
-		thisData.Host = ""
-	} else {
-		var value string
-		for _, v := range names {
-			value += fmt.Sprintf("%s\n", v)
-		}
-		thisData.Host = value
+func legacyXML(i Info) oldInfo {
+	host := i.Host
+	if host != "" {
+		host += "\n"
 	}
-
-	thisData.IP = getIP(this.Ctx.Request.RemoteAddr)
-	thisData.Port = getPort(this.Ctx.Request.RemoteAddr)
-	thisData.Method = this.Ctx.Request.Method
-	if len(this.Ctx.Request.Header["Accept-Encoding"]) > 0 {
-		thisData.Encoding = this.Ctx.Request.Header["Accept-Encoding"][0]
-	}
-	if len(this.Ctx.Request.Header["Accept"]) > 0 {
-		thisData.Mime = this.Ctx.Request.Header["Accept"][0]
-	}
-	if len(this.Ctx.Request.Header["Connection"]) > 0 {
-		thisData.Connection = this.Ctx.Request.Header["Connection"][0]
-	}
-	if len(this.Ctx.Request.Header["Via"]) > 0 {
-		thisData.Via = this.Ctx.Request.Header["Via"][0]
-	}
-	if len(this.Ctx.Request.Header["Charset"]) > 0 {
-		thisData.Charset = this.Ctx.Request.Header["Charset"][0]
-	}
-	if len(this.Ctx.Request.Header["KeepAlive"]) > 0 {
-		thisData.Keepalive = this.Ctx.Request.Header["KeepAlive"][0]
-	}
-	if len(this.Ctx.Request.Header["X-Forwarded-For"]) > 0 {
-		thisData.Forwarded = this.Ctx.Request.Header["X-Forwarded-For"][0]
-	}
-	if len(this.Ctx.Request.Header["Accept-Language"]) > 0 {
-		thisData.Lang = this.Ctx.Request.Header["Accept-Language"][0]
-	}
-	thisData.Referer = this.Ctx.Input.Refer()
-
-	this.Data["xml"] = thisData
-	this.ServeXML()
+	return oldInfo{Email: i.Email, UserAgent: i.UserAgent, Host: host, IP: i.IP, Port: i.Port, Method: i.Method, Encoding: i.Encoding, Mime: i.Mime, Connection: i.Connection, Via: i.Via, Charset: i.Charset, Keepalive: i.Keepalive, Forwarded: i.Forwarded, Lang: i.Lang, Referer: i.Referer}
 }
-
-func (this *MainController) GetAllJSON() {
-	thisData := make(map[string]interface{})
-	thisData["Email"] = "admin@ifconfig.tw"
-	thisData["UserAgent"] = this.Ctx.Request.UserAgent()
-	ip := getIP(this.Ctx.Request.RemoteAddr)
-	names, err := net.LookupAddr(ip)
-	if err != nil || len(names) == 0 {
-		thisData["Host"] = ""
-	} else {
-		var value string
-		for _, v := range names {
-			value += fmt.Sprintf("%s\n", v)
-		}
-		thisData["Host"] = value
-	}
-
-	thisData["IP"] = getIP(this.Ctx.Request.RemoteAddr)
-	thisData["Port"] = getPort(this.Ctx.Request.RemoteAddr)
-	thisData["Method"] = this.Ctx.Request.Method
-	if len(this.Ctx.Request.Header["Accept-Encoding"]) > 0 {
-		thisData["Encoding"] = this.Ctx.Request.Header["Accept-Encoding"][0]
-	}
-	if len(this.Ctx.Request.Header["Accept"]) > 0 {
-		thisData["Mime"] = this.Ctx.Request.Header["Accept"][0]
-	}
-	if len(this.Ctx.Request.Header["Connection"]) > 0 {
-		thisData["Connection"] = this.Ctx.Request.Header["Connection"][0]
-	}
-	if len(this.Ctx.Request.Header["Via"]) > 0 {
-		thisData["Via"] = this.Ctx.Request.Header["Via"][0]
-	}
-	if len(this.Ctx.Request.Header["Charset"]) > 0 {
-		thisData["Charset"] = this.Ctx.Request.Header["Charset"][0]
-	}
-	if len(this.Ctx.Request.Header["KeepAlive"]) > 0 {
-		thisData["Keepalive"] = this.Ctx.Request.Header["KeepAlive"][0]
-	}
-	if len(this.Ctx.Request.Header["X-Forwarded-For"]) > 0 {
-		thisData["Forwarded"] = this.Ctx.Request.Header["X-Forwarded-For"][0]
-	}
-	if len(this.Ctx.Request.Header["Accept-Language"]) > 0 {
-		thisData["Lang"] = this.Ctx.Request.Header["Accept-Language"][0]
-	}
-	thisData["Referer"] = this.Ctx.Input.Refer()
-
-	this.Data["json"] = thisData
-	this.ServeJSON()
-}
-
-func (this *MainController) Get() {
-	if noweb := os.Getenv("NOWEB"); noweb == "1" {
-		this.Abort("404")
-		return
-	}
-	this.Data["Email"] = "admin@ifconfig.tw"
-	this.Data["UserAgent"] = this.Ctx.Request.UserAgent()
-	ip := getIP(this.Ctx.Request.RemoteAddr)
-	names, err := net.LookupAddr(ip)
-	if err != nil || len(names) == 0 {
-		this.Data["Host"] = ""
-	} else {
-		var value string
-		for _, v := range names {
-			value += fmt.Sprintf("%s\n", v)
-		}
-		this.Data["Host"] = value
-	}
-
-	this.Data["IP"] = getIP(this.Ctx.Request.RemoteAddr)
-	this.Data["Port"] = getPort(this.Ctx.Request.RemoteAddr)
-	this.Data["Method"] = this.Ctx.Request.Method
-	if len(this.Ctx.Request.Header["Accept-Encoding"]) > 0 {
-		this.Data["Encoding"] = this.Ctx.Request.Header["Accept-Encoding"][0]
-	}
-	if len(this.Ctx.Request.Header["Accept"]) > 0 {
-		this.Data["Mime"] = this.Ctx.Request.Header["Accept"][0]
-	}
-	if len(this.Ctx.Request.Header["Connection"]) > 0 {
-		this.Data["Connection"] = this.Ctx.Request.Header["Connection"][0]
-	}
-	if len(this.Ctx.Request.Header["Via"]) > 0 {
-		this.Data["Via"] = this.Ctx.Request.Header["Via"][0]
-	}
-	if len(this.Ctx.Request.Header["Charset"]) > 0 {
-		this.Data["Charset"] = this.Ctx.Request.Header["Charset"][0]
-	}
-	if len(this.Ctx.Request.Header["KeepAlive"]) > 0 {
-		this.Data["Keepalive"] = this.Ctx.Request.Header["KeepAlive"][0]
-	}
-	if len(this.Ctx.Request.Header["X-Forwarded-For"]) > 0 {
-		this.Data["Forwarded"] = this.Ctx.Request.Header["X-Forwarded-For"][0]
-	}
-	if len(this.Ctx.Request.Header["Accept-Language"]) > 0 {
-		this.Data["Lang"] = this.Ctx.Request.Header["Accept-Language"][0]
-	}
-	this.Data["Referer"] = this.Ctx.Input.Refer()
-
-	if strings.Contains(this.Ctx.Request.UserAgent(), "curl") {
-		this.TplName = "iponly.tpl"
-	} else {
-		this.TplName = "index.tpl"
-	}
-}
-
-func getIPVersion(s string) string {
-	// rs, _ := utf8.DecodeRuneInString(s)
-	for _, r := range s {
-		if r == ':' {
-			return "ipv6"
-		} else if r == '.' {
-			return "ipv4"
+func legacyJSON(i Info) map[string]string {
+	old := legacyXML(i)
+	result := map[string]string{"Email": old.Email, "UserAgent": old.UserAgent, "Host": old.Host, "IP": old.IP, "Port": old.Port, "Method": old.Method, "Referer": old.Referer}
+	for key, value := range map[string]string{"Encoding": old.Encoding, "Mime": old.Mime, "Connection": old.Connection, "Via": old.Via, "Charset": old.Charset, "Keepalive": old.Keepalive, "Forwarded": old.Forwarded, "Lang": old.Lang} {
+		if value != "" {
+			result[key] = value
 		}
 	}
-	return "ipv4"
-}
-
-func getIP(s string) string {
-	if getIPVersion(s) == "ipv6" {
-		pos := strings.Index(s, "]")
-		if pos == -1 {
-			return s
-		} else {
-			return s[1:pos] // remove [ ]
-		}
-	} else {
-		// ipv4
-		pos := strings.Index(s, ":")
-		return s[0:pos]
-	}
-}
-
-func getPort(s string) string {
-	if getIPVersion(s) == "ipv6" {
-		pos := strings.Index(s, "]")
-		if pos == -1 {
-			return ""
-		}
-		return s[pos+2:]
-	} else {
-		// ipv4
-		pos := strings.Index(s, ":")
-		if pos == -1 {
-			return ""
-		}
-		return s[pos+1:]
-
-	}
+	return result
 }

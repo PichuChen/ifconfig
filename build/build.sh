@@ -1,0 +1,6 @@
+#!/bin/sh
+set -eu
+cd "$(dirname "$0")/.."
+go test ./...
+go vet ./...
+CGO_ENABLED=0 go build -trimpath -o ifconfig .

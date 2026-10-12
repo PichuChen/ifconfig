@@ -9,7 +9,7 @@
     <meta http-equiv="cache-control" content="no-cache" />
     <meta name="description" content="Get my IP Address" />
     <meta name="keywords" content="ip address ifconfig" />
-    <meta name="author" content="{{.Author}}" />
+    <meta name="author" content="ifconfig.tw" />
     <link rel="shortcut icon" href="/static/img/favicon.ico" />
     <link rev="made" href="mailto: {{.Email}}" />
     <title>What Is My IP Address? - Powered by ifconfig.tw</title>
@@ -52,7 +52,7 @@
         <table>
           <tr>
             <td>
-              <h1><a href="http://ifconfig.tw">What Is My IP Address? - Powered by ifconfig.tw</a></h1>
+              <h1><a href="https://ifconfig.tw">What Is My IP Address? - Powered by ifconfig.tw</a></h1>
             </td>
             <td></td>
           </tr>
@@ -104,13 +104,11 @@
           <tr><td class="cli_command">$ curl ifconfig.tw/via</td><td class="cli_arrow">&rArr;</td><td>{{.Via}}</td></tr>
           <tr><td class="cli_command">$ curl ifconfig.tw/forwarded</td><td class="cli_arrow">&rArr;</td><td>{{.Forwarded}}</td></tr>
           <tr><td class="cli_command">$ curl ifconfig.tw/all</td><td class="cli_arrow">&rArr;</td><td>ip_addr: {{.IP}}<br />remote_host: {{.Host}} <br />user_agent: {{.UserAgent}}<br />port: {{.Port}}<br />lang: {{.Lang}}<br />connection: {{.Connection}}<br />keep_alive: {{.Keepalive}}<br />encoding: {{.Encoding}}<br />mime: {{.Mime}}<br />charset: {{.Charset}}<br />via: {{.Via}}<br />forwarded: {{.Forwarded}}<br /></td></tr>
-          <tr><td class="cli_command">$ curl ifconfig.tw/all.xml</td><td class="cli_arrow">&rArr;</td><td>&lt;info&gt;<br />&nbsp;&nbsp;&nbsp;&nbsp;&lt;charset&gt;{{.Charset}}&lt;/charset&gt;<br />&nbsp;&nbsp;&nbsp;&nbsp;&lt;connection&gt;{{.Connection}}&lt;/connection&gt;<br />&nbsp;&nbsp;&nbsp;&nbsp;&lt;encoding&gt;{{.Encoding}}&lt;/encoding&gt;<br />&nbsp;&nbsp;&nbsp;&nbsp;&lt;forwarded&gt;{{.Forwarded}}&lt;/forwarded&gt;<br />&nbsp;&nbsp;&nbsp;&nbsp;&lt;ip_addr&gt;{{.IP}}&lt;/ip_addr&gt;<br />&nbsp;&nbsp;&nbsp;&nbsp;&lt;keep_alive&gt;{{.Keepalive}}&lt;/keep_alive&gt;<br />&nbsp;&nbsp;&nbsp;&nbsp;&lt;lang&gt;{{.Lang}}&lt;/lang&gt;<br />&nbsp;&nbsp;&nbsp;&nbsp;&lt;mime&gt;{{.Mime}}&lt;/mime&gt;<br />&nbsp;&nbsp;&nbsp;&nbsp;&lt;port&gt;{{.Port}}&lt;/port&gt;<br />&nbsp;&nbsp;&nbsp;&nbsp;&lt;remote_host&gt;{{.Host}}&lt;/remote_host&gt;<br />&nbsp;&nbsp;&nbsp;&nbsp;&lt;user_agent&gt;{{.UserAgent}}&lt;/user_agent&gt;<br />&nbsp;&nbsp;&nbsp;&nbsp;&lt;via&gt;{{.Via}}&lt;/via&gt;<br />
-&lt;/info&gt;<br />
-</td></tr>
-          <tr><td class="cli_command">$ curl ifconfig.tw/all.json</td><td class="cli_arrow">&rArr;</td><td>{"connection":"{{.Connection}}","ip_addr":"{{.IP}}","lang":"{{.Lang}}","remote_host":"{{.Host}}","user_agent":"{{.UserAgent}}","charset":"{{.Charset}}","port":"{{.Port}}","via":"{{.Via}}","forwarded":"{{.Forwarded}}","mime":"{{.Mime}}","keep_alive":"{{.Keepalive}}","encoding":"{{.Encoding}}"}</td></tr>
+          <tr><td class="cli_command">$ curl ifconfig.tw/all.xml</td><td class="cli_arrow">&rArr;</td><td><pre style="white-space:pre-wrap;overflow-wrap:anywhere">{{.XMLExample}}</pre></td></tr>
+          <tr><td class="cli_command">$ curl ifconfig.tw/all.json</td><td class="cli_arrow">&rArr;</td><td><pre style="white-space:pre-wrap;overflow-wrap:anywhere">{{.JSONExample}}</pre></td></tr>
         </table>
       </div>
-      <div id="footer">&copy; 2016 <a href="http://ifconfig.tw">ifconfig.tw</a></div>
+      <div id="footer">&copy; 2016 <a href="https://ifconfig.tw">ifconfig.tw</a></div>
     </div>
     <script>
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
